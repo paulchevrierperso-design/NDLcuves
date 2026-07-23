@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Fond Dégradé Sombre (Thème Slate-900) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <!-- Dégradé Eau / Cyan -->
+    <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <!-- Dégradé Cuve / Badge -->
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond Arrondi App Icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#334155" stroke-width="8"/>
+
+  <!-- Symbole de la Cuve (Tank / Container) -->
+  <rect x="128" y="160" width="256" height="240" rx="32" fill="#1e293b" stroke="url(#shieldGrad)" stroke-width="16"/>
+  <path d="M 144 280 Q 256 260 368 280 L 368 368 Q 368 384 352 384 L 160 384 Q 144 384 144 368 Z" fill="url(#waterGrad)" opacity="0.85"/>
+
+  <!-- Goutte d'eau Centrale (Live Data Sync) -->
+  <path d="M 256 100 C 256 100 192 180 192 220 C 192 255.3 220.7 284 256 284 C 291.3 284 320 255.3 320 220 C 320 180 256 100 256 100 Z" fill="url(#waterGrad)"/>
+  
+  <!-- Reflet Goutte -->
+  <path d="M 240 180 C 230 195 225 210 225 225" stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+  <!-- Indicateurs de Niveau / Réseau -->
+  <line x1="176" y1="200" x2="208" y2="200" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+  <line x1="176" y1="240" x2="216" y2="240" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+  <line x1="176" y1="280" x2="208" y2="280" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+</svg>
