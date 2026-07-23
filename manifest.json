@@ -1,0 +1,13 @@
+{
+  "name": "Supervision Cuves NDL",
+  "short_name": "Cuves NDL",
+  "start_url": ".",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
