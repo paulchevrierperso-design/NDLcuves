@@ -258,23 +258,22 @@
     <script>
         // CONFIGURATION FIREBASE
         const firebaseConfig = {
-  apiKey: "AIzaSyBQop-MWR8Xmmzl574RIHk8Nq9zbIDdYsc",
-  authDomain: "gestion-cuves-ndl-7fc7c.firebaseapp.com",
-  databaseURL: "https://gestion-cuves-ndl-7fc7c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "gestion-cuves-ndl-7fc7c",
-  storageBucket: "gestion-cuves-ndl-7fc7c.firebasestorage.app",
-  messagingSenderId: "700168569124",
-  appId: "1:700168569124:web:0b0578c1e8718f39e373b1",
-  measurementId: "G-V66WCZLZ1C"
-};
-        
+            apiKey: "AIzaSyBQop-MWR8Xmmz1574RIHk8Nq9zbiDDYsc",
+            authDomain: "gestion-cuves-ndl-7fc7c.firebaseapp.com",
+            databaseURL: "https://gestion-cuves-ndl-7fc7c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "gestion-cuves-ndl-7fc7c",
+            storageBucket: "gestion-cuves-ndl-7fc7c.firebasestorage.app",
+            messagingSenderId: "700168569124",
+            appId: "1:700168569124:web:3f508f3B3155ab0ae373b1"
+        };
+
         // Initialisation Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let isLocked = true;
 
-        // Données de secours (utilisées immédiatement dès l'ouverture de la page)
+        // Données de secours
         const initialTanksData = [
             { id: 60, cap: 25.4, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
             { id: 61, cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "Fuite. Alimentation à laisser fermée" },
@@ -294,7 +293,6 @@
             { id: 26, cap: 25.0, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" }
         ];
 
-        // Charger immédiatement les données initiales
         let tanks = JSON.parse(JSON.stringify(initialTanksData));
         let historyLogs = [];
 
@@ -342,14 +340,12 @@
             db.ref('cuves_ndl/lastUpdated').set(new Date().toISOString());
         }
 
-        // Rendu global
         function renderAll() {
             renderMetrics();
             renderSchema();
             renderTable();
         }
 
-        // Initialisation lors du chargement de la page
         document.addEventListener('DOMContentLoaded', () => {
             renderAll();
             refreshIcons();
@@ -481,7 +477,8 @@
             const rightContainer = document.getElementById('battery-right-list');
             if (!leftContainer || !rightContainer) return;
 
-            const leftOrder = [60, 61, 62, 63, 64, 65, 66, 67];
+            // ORDRE MODIFIÉ : 67 en haut ➔ 60 en bas
+            const leftOrder = [67, 66, 65, 64, 63, 62, 61, 60];
             const rightOrder = [19, 20, 21, 22, 23, 24, 25, 26];
 
             leftContainer.innerHTML = leftOrder.map(id => createTankCardHTML(tanks.find(item => item.id === id), 'left')).join('');
