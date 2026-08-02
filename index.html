@@ -2,8 +2,6 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervision des Cuves NDL</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,84 +11,45 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .tank-water { transition: height 0.6s ease-in-out, background-color 0.3s; }
-        .valve { transition: all 0.3s ease; }
-        .valve-open { background-color: #22c55e; border-color: #15803d; color: white; }
-        .valve-closed { background-color: #ef4444; border-color: #b91c1c; color: white; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6 text-slate-100">
 
     <!-- MODAL DE CONNEXION -->
-    <div id="login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-        <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+    <div id="login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-md w-full text-center">
             <h2 class="text-2xl font-bold text-white mb-6">Accès Sécurisé</h2>
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
-                <input type="text" id="login-username" required placeholder="Identifiant" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
-                <input type="password" id="login-password" required placeholder="Mot de passe" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
-                <div id="login-error" class="hidden text-rose-400 text-xs font-medium text-center bg-rose-950/50 border border-rose-800/60 py-2 rounded-lg">Identifiant incorrect.</div>
-                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm">Se Connecter</button>
+                <input type="text" id="login-username" required placeholder="Identifiant" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm">
+                <input type="password" id="login-password" required placeholder="Mot de passe" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm">
+                <div id="login-error" class="hidden text-rose-400 text-xs text-center bg-rose-950/50 p-2 rounded-lg">Identifiant incorrect.</div>
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-bold">Se Connecter</button>
             </form>
         </div>
     </div>
 
     <!-- HEADER -->
-    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30"><i data-lucide="droplets" class="w-7 h-7"></i></div>
-            <div>
-                <h1 class="text-2xl font-bold text-white">Gestion Cuves NDL</h1>
-                <p class="text-sm text-slate-400">Supervision du Réseau • <span id="sync-status">Connexion...</span></p>
-            </div>
+    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Gestion Cuves NDL</h1>
+            <p class="text-sm text-slate-400">Supervision du Réseau</p>
         </div>
         <div class="flex gap-2">
-            <button id="lock-btn" onclick="toggleLock()" class="px-3.5 py-2 bg-rose-600 text-white rounded-xl text-sm font-bold border border-rose-500">Verrouillé</button>
-            <button onclick="logout()" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl text-sm font-medium border border-slate-700">Déconnexion</button>
+            <button id="lock-btn" onclick="toggleLock()" class="px-4 py-2 bg-rose-600 rounded-xl text-sm font-bold">Verrouillé</button>
+            <button onclick="logout()" class="px-4 py-2 bg-slate-800 rounded-xl text-sm">Déconnexion</button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto space-y-6">
-        <!-- METRICS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <span class="text-xs font-semibold text-slate-400">Volume Total</span>
-                <div class="flex items-baseline gap-2"><span id="tot-vol-disp" class="text-3xl font-extrabold">0</span><span class="text-sm text-slate-400">m³</span></div>
-                <div class="w-full bg-slate-800 h-2 rounded-full mt-2"><div id="tot-bar" class="bg-blue-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
-            </div>
-            <!-- Jardins -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <span class="text-xs font-semibold text-emerald-400">Volume Jardins</span>
-                <div class="flex items-baseline gap-2"><span id="jardins-vol-disp" class="text-3xl font-extrabold">0</span><span class="text-sm text-slate-400">m³</span></div>
-                <div class="w-full bg-slate-800 h-2 rounded-full mt-2"><div id="jardins-bar" class="bg-emerald-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
-            </div>
-            <!-- Incendie -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <span class="text-xs font-semibold text-amber-400">Réserve Incendie</span>
-                <div class="flex items-baseline gap-2"><span id="incendie-vol-disp" class="text-3xl font-extrabold">0</span><span class="text-sm text-slate-400">m³</span></div>
-                <div class="w-full bg-slate-800 h-2 rounded-full mt-2"><div id="incendie-bar" class="bg-amber-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
-            </div>
-        </div>
-
-        <!-- VIEW SCHÉMA MODIFIÉE POUR MOBILE -->
-        <div id="view-schema" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-            <div class="overflow-x-auto pb-4">
-                <!-- Changement ici: w-full pour occuper toute la largeur sur mobile -->
-                <div class="w-full mx-auto p-4 bg-slate-950/80 rounded-xl border border-slate-800/80 relative">
-                    <div class="grid grid-cols-2 gap-4 px-2">
-                        <div id="battery-left" class="space-y-3">
-                            <div id="battery-left-list" class="space-y-3"></div>
-                        </div>
-                        <div id="battery-right" class="space-y-3">
-                            <div id="battery-right-list" class="space-y-3"></div>
-                        </div>
-                    </div>
-                </div>
+    <main class="max-w-7xl mx-auto">
+        <div id="view-schema" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+            <div class="w-full mx-auto p-4 bg-slate-950/80 rounded-xl border border-slate-800/80">
+                <div id="battery-left-list" class="space-y-3"></div>
             </div>
         </div>
     </main>
 
     <script>
-        // CONFIGURATION (Votre propre config Firebase)
+        // CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyBQop-MWR8Xmmz1574RIHk8Nq9zbiDDYsc",
             authDomain: "gestion-cuves-ndl-7fc7c.firebaseapp.com",
@@ -101,78 +60,53 @@
             appId: "1:700168569124:web:3f508f3B3155ab0ae373b1"
         };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        // État
+        // AUTHENTIFICATION
+        function handleLogin(e) {
+            e.preventDefault();
+            if (document.getElementById("login-username").value === "admin" && document.getElementById("login-password").value === "ndl2026") {
+                localStorage.setItem("ndl_auth", "true");
+                document.getElementById("login-modal").classList.add("hidden");
+            } else {
+                document.getElementById("login-error").classList.remove("hidden");
+            }
+        }
+
+        function logout() { localStorage.removeItem("ndl_auth"); location.reload(); }
+
+        // ÉTAT ET RENDU
         let isLocked = true;
-        let tanks = [
-            { id: 60, cap: 25.4, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 61, cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
-            /* ... Ajoutez ici le reste de vos données initiales ... */
-        ];
+        let tanks = [{ id: 60, pct: 50 }, { id: 61, pct: 25 }]; // Exemple
 
-        // LOGIQUE DE RENDU MODIFIÉE AVEC BOUTONS 5 NIVEAUX
-        function createTankCardHTML(t, side) {
-            if(!t) return '';
-            const isAlimOpen = t.alim === 'ouverte';
-            const isVidOpen = t.vid === 'ouverte';
-            const currentVol = (t.cap * t.pct / 100).toFixed(1);
-            
-            // Nouveau HTML des boutons :
-            // Visible par défaut sur mobile (opacity-100), survol seulement sur desktop (md:opacity-0)
-            const controlsHTML = !isLocked ? `
-                <div class="absolute inset-0 bg-slate-950/90 opacity-100 md:opacity-0 md:hover:opacity-100 transition-opacity flex flex-wrap items-center justify-center gap-1 z-20 p-1">
-                    <button onclick="setTankLevel(${t.id}, 0)" class="px-1 py-0.5 bg-slate-700 rounded text-[9px] text-white">0%</button>
-                    <button onclick="setTankLevel(${t.id}, 25)" class="px-1 py-0.5 bg-slate-700 rounded text-[9px] text-white">25%</button>
-                    <button onclick="setTankLevel(${t.id}, 50)" class="px-1 py-0.5 bg-blue-700 rounded text-[9px] text-white">50%</button>
-                    <button onclick="setTankLevel(${t.id}, 75)" class="px-1 py-0.5 bg-blue-700 rounded text-[9px] text-white">75%</button>
-                    <button onclick="setTankLevel(${t.id}, 100)" class="px-1 py-0.5 bg-blue-600 rounded text-[9px] text-white">100%</button>
-                </div>` : '';
-
-            return `
-                <div class="relative bg-slate-900 border border-slate-700 rounded-xl overflow-hidden h-20 flex flex-col justify-between p-2">
-                    <div class="flex justify-between z-10 text-[10px]">
-                        <span class="font-bold">Cuve ${t.id}</span>
-                        <span class="text-blue-300">${t.pct}%</span>
-                    </div>
-                    <div class="absolute bottom-0 left-0 w-full bg-blue-950/50 pointer-events-none" style="height: ${t.pct}%">
-                        <div class="w-full h-full bg-blue-500/80"></div>
-                    </div>
-                    ${controlsHTML}
-                </div>`;
+        function toggleLock() {
+            isLocked = !isLocked;
+            document.getElementById('lock-btn').innerText = isLocked ? "Verrouillé" : "Déverrouillé";
+            renderSchema();
         }
 
         function setTankLevel(id, pct) {
             if (isLocked) return alert("Application verrouillée");
-            const tank = tanks.find(t => t.id === id);
-            if(tank) {
-                tank.pct = pct;
-                // Logique de sauvegarde Firebase ici...
-                renderSchema();
-            }
-        }
-
-        function toggleLock() {
-            isLocked = !isLocked;
-            const btn = document.getElementById('lock-btn');
-            btn.innerText = isLocked ? "Verrouillé" : "Déverrouillé";
+            tanks.find(t => t.id === id).pct = pct;
             renderSchema();
         }
 
-        // Initialisation standard
-        document.addEventListener('DOMContentLoaded', () => {
-             renderSchema();
-             refreshIcons();
-        });
-
-        function refreshIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
-        
         function renderSchema() {
-            const leftList = document.getElementById('battery-left-list');
-            const rightList = document.getElementById('battery-right-list');
-            // Logique de tri et affichage...
-            // Appelez renderSchema() après chaque modification de donnée
+            const list = document.getElementById('battery-left-list');
+            list.innerHTML = tanks.map(t => `
+                <div class="relative bg-slate-900 border border-slate-700 rounded-xl h-20 flex items-center justify-between p-4 overflow-hidden">
+                    <span>Cuve ${t.id} - ${t.pct}%</span>
+                    ${!isLocked ? `
+                        <div class="flex gap-1 z-10">
+                            ${[0,25,50,75,100].map(p => `<button onclick="setTankLevel(${t.id},${p})" class="px-2 py-1 bg-slate-700 hover:bg-blue-600 rounded text-xs">${p}%</button>`).join('')}
+                        </div>` : ''}
+                </div>
+            `).join('');
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem("ndl_auth") !== "true") document.getElementById("login-modal").classList.remove("hidden");
+            renderSchema();
+        });
     </script>
 </body>
 </html>
