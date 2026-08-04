@@ -165,25 +165,26 @@
         let isLocked = true;
         let currentTab = 'schema';
 
+        // Capacités corrigées selon l'image fournie (Cuves 19 à 26 et 60 à 67)
         let tanks = [
-            // Batterie Nord (60-67)
-            { id: 60, battery: "Nord", cap: 25.4, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 61, battery: "Nord", cap: 25.0, pct: 50, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
-            { id: 62, battery: "Nord", cap: 25.0, pct: 75, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 63, battery: "Nord", cap: 25.0, pct: 25, alim: "fermee", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 64, battery: "Nord", cap: 25.0, pct: 100, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 65, battery: "Nord", cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
-            { id: 66, battery: "Nord", cap: 25.0, pct: 50, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 67, battery: "Nord", cap: 25.0, pct: 50, alim: "fermee", vid: "fermee", usage: "Jardins partagés", comm: "" },
             // Batterie Sud (19-26)
-            { id: 19, battery: "Sud", cap: 25.0, pct: 50, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 20, battery: "Sud", cap: 25.0, pct: 50, alim: "fermee", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 21, battery: "Sud", cap: 25.0, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 22, battery: "Sud", cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
-            { id: 23, battery: "Sud", cap: 25.0, pct: 75, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 24, battery: "Sud", cap: 25.0, pct: 25, alim: "fermee", vid: "fermee", usage: "Défense incendie", comm: "" },
-            { id: 25, battery: "Sud", cap: 25.0, pct: 50, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
-            { id: 26, battery: "Sud", cap: 25.0, pct: 50, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" }
+            { id: 19, battery: "Sud", cap: 11.6, pct: 100, alim: "fermee", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 20, battery: "Sud", cap: 27.0, pct: 0, alim: "fermee", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 21, battery: "Sud", cap: 26.0, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
+            { id: 22, battery: "Sud", cap: 25.8, pct: 0, alim: "fermee", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 23, battery: "Sud", cap: 26.8, pct: 100, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 24, battery: "Sud", cap: 26.6, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
+            { id: 25, battery: "Sud", cap: 24.8, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" },
+            { id: 26, battery: "Sud", cap: 25.0, pct: 0, alim: "fermee", vid: "fermee", usage: "Défense incendie", comm: "" },
+            // Batterie Nord (60-67)
+            { id: 67, battery: "Nord", cap: 25.7, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
+            { id: 66, battery: "Nord", cap: 25.0, pct: 0, alim: "ouverte", vid: "ouverte", usage: "Jardins partagés", comm: "" },
+            { id: 65, battery: "Nord", cap: 24.2, pct: 100, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 64, battery: "Nord", cap: 24.5, pct: 100, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", comm: "" },
+            { id: 63, battery: "Nord", cap: 25.7, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", comm: "" },
+            { id: 62, battery: "Nord", cap: 26.1, pct: 0, alim: "fermee", vid: "ouverte", usage: "Défense incendie", comm: "" },
+            { id: 61, battery: "Nord", cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Défense incendie", comm: "" },
+            { id: 60, battery: "Nord", cap: 25.4, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", comm: "" }
         ];
 
         let historyLog = JSON.parse(localStorage.getItem('ndl_history') || '[]');
@@ -279,7 +280,6 @@
             });
 
             const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-            // Éviter les doublons le même jour
             const existingIndex = chartSnapshots.findIndex(s => s.date === today);
             const snapshotData = { date: today, global: totalVol, jardins: jardinsVol, incendie: incendieVol };
 
@@ -341,7 +341,6 @@
         }
 
         function renderApp() {
-            // Métriques globales
             let totalCap = 0, totalVol = 0, jardinsCap = 0, jardinsVol = 0, incendieCap = 0, incendieVol = 0;
             tanks.forEach(t => {
                 const vol = t.cap * (t.pct / 100);
@@ -371,7 +370,7 @@
                                 </div>` : ''}
                             <div class="flex justify-between items-start mb-2">
                                 <div>
-                                    <span class="font-bold text-white text-xs">Cuve ${t.id}</span>
+                                    <span class="font-bold text-white text-xs">Cuve ${t.id} <span class="text-[10px] text-slate-400 font-normal">(${t.cap} m³)</span></span>
                                     <p class="text-[10px] text-slate-400">${t.usage}</p>
                                 </div>
                                 <span class="text-xs font-mono font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-1.5 py-0.5 rounded">${t.pct}%</span>
@@ -380,7 +379,6 @@
                                 <div class="bg-blue-500 h-full tank-water" style="width: ${t.pct}%"></div>
                             </div>
                             
-                            <!-- Gestion directe des vannes et niveaux -->
                             <div class="flex flex-col gap-1.5 text-[10px] text-slate-300 mb-2 bg-slate-950/50 p-1.5 rounded-lg border border-slate-800">
                                 <div class="flex justify-between items-center">
                                     <span>Alim:</span>
@@ -423,7 +421,10 @@
                                 ${leakAlert ? '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500" title="Fuite détectée dans les commentaires"></i>' : ''}
                             </td>
                             <td class="p-3 font-medium text-slate-400">Batterie ${t.battery}</td>
-                            <td class="p-3">${t.cap} m³</td>
+                            <td class="p-3">
+                                ${isLocked ? `${t.cap} m³` : `
+                                    <input type="number" step="0.1" value="${t.cap}" onchange="updateTank(${t.id}, 'cap', Number(this.value))" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs w-20">`}
+                            </td>
                             <td class="p-3">
                                 ${isLocked ? `${t.pct}%` : `
                                     <select onchange="updateTank(${t.id}, 'pct', Number(this.value))" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs">
