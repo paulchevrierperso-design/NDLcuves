@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervision des Cuves NDL</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,45 +13,80 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .tank-water { transition: width 0.5s ease-in-out, background-color 0.3s; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6 text-slate-100">
 
     <!-- MODAL DE CONNEXION -->
-    <div id="login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl max-w-md w-full text-center">
+    <div id="login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
             <h2 class="text-2xl font-bold text-white mb-6">Accès Sécurisé</h2>
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
-                <input type="text" id="login-username" required placeholder="Identifiant" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm">
-                <input type="password" id="login-password" required placeholder="Mot de passe" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm">
-                <div id="login-error" class="hidden text-rose-400 text-xs text-center bg-rose-950/50 p-2 rounded-lg">Identifiant incorrect.</div>
-                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-bold">Se Connecter</button>
+                <input type="text" id="login-username" required placeholder="Identifiant" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
+                <input type="password" id="login-password" required placeholder="Mot de passe" class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white">
+                <div id="login-error" class="hidden text-rose-400 text-xs font-medium text-center bg-rose-950/50 border border-rose-800/60 py-2 rounded-lg">Identifiant incorrect.</div>
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-colors">Se Connecter</button>
             </form>
         </div>
     </div>
 
     <!-- HEADER -->
-    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-            <h1 class="text-2xl font-bold text-white">Gestion Cuves NDL</h1>
-            <p class="text-sm text-slate-400">Supervision du Réseau</p>
+    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30"><i data-lucide="droplets" class="w-7 h-7"></i></div>
+            <div>
+                <h1 class="text-2xl font-bold text-white">Gestion Cuves NDL</h1>
+                <p class="text-sm text-slate-400">Supervision du Réseau • <span id="sync-status" class="text-emerald-400 font-medium">Connecté</span></p>
+            </div>
         </div>
         <div class="flex gap-2">
-            <button id="lock-btn" onclick="toggleLock()" class="px-4 py-2 bg-rose-600 rounded-xl text-sm font-bold">Verrouillé</button>
-            <button onclick="logout()" class="px-4 py-2 bg-slate-800 rounded-xl text-sm">Déconnexion</button>
+            <button id="lock-btn" onclick="toggleLock()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-bold border border-rose-500/50 transition-colors">Verrouillé</button>
+            <button onclick="logout()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium border border-slate-700 transition-colors">Déconnexion</button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto">
-        <div id="view-schema" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
-            <div class="w-full mx-auto p-4 bg-slate-950/80 rounded-xl border border-slate-800/80">
-                <div id="battery-left-list" class="space-y-3"></div>
+    <main class="max-w-7xl mx-auto space-y-6">
+        <!-- METRICS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <span class="text-xs font-semibold text-slate-400">Volume Total</span>
+                <div class="flex items-baseline gap-2 mt-1"><span id="tot-vol-disp" class="text-3xl font-extrabold text-white">0</span><span class="text-sm text-slate-400">m³</span></div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden"><div id="tot-bar" class="bg-blue-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
+            </div>
+            <!-- Jardins -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <span class="text-xs font-semibold text-emerald-400">Volume Jardins</span>
+                <div class="flex items-baseline gap-2 mt-1"><span id="jardins-vol-disp" class="text-3xl font-extrabold text-white">0</span><span class="text-sm text-slate-400">m³</span></div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden"><div id="jardins-bar" class="bg-emerald-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
+            </div>
+            <!-- Incendie -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <span class="text-xs font-semibold text-amber-400">Réserve Incendie</span>
+                <div class="flex items-baseline gap-2 mt-1"><span id="incendie-vol-disp" class="text-3xl font-extrabold text-white">0</span><span class="text-sm text-slate-400">m³</span></div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden"><div id="incendie-bar" class="bg-amber-500 h-full rounded-full w-0 transition-all duration-500"></div></div>
+            </div>
+        </div>
+
+        <!-- VIEW SCHÉMA RESPONSIVE SMARTPHONE -->
+        <div id="view-schema" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl">
+            <div class="w-full mx-auto p-2 md:p-4 bg-slate-950/80 rounded-xl border border-slate-800/80">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="battery-left" class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Batterie Est</h3>
+                        <div id="battery-left-list" class="space-y-3"></div>
+                    </div>
+                    <div id="battery-right" class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Batterie Ouest</h3>
+                        <div id="battery-right-list" class="space-y-3"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // CONFIGURATION
+        // CONFIGURATION FIREBASE INTEGRÉE
         const firebaseConfig = {
             apiKey: "AIzaSyBQop-MWR8Xmmz1574RIHk8Nq9zbiDDYsc",
             authDomain: "gestion-cuves-ndl-7fc7c.firebaseapp.com",
@@ -60,53 +97,156 @@
             appId: "1:700168569124:web:3f508f3B3155ab0ae373b1"
         };
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // AUTHENTIFICATION
-        function handleLogin(e) {
-            e.preventDefault();
-            if (document.getElementById("login-username").value === "admin" && document.getElementById("login-password").value === "ndl2026") {
-                localStorage.setItem("ndl_auth", "true");
-                document.getElementById("login-modal").classList.add("hidden");
+        // AUTHENTIFICATION LOCALE (Sécurité d'accès)
+        const AUTH_USER = "admin";
+        const AUTH_PASS = "ndl2026";
+
+        function checkAuth() {
+            const loggedIn = localStorage.getItem("ndl_auth");
+            const modal = document.getElementById("login-modal");
+            if (loggedIn === "true") {
+                modal.classList.add("hidden");
             } else {
-                document.getElementById("login-error").classList.remove("hidden");
+                modal.classList.remove("hidden");
             }
         }
 
-        function logout() { localStorage.removeItem("ndl_auth"); location.reload(); }
+        function handleLogin(e) {
+            e.preventDefault();
+            const userInput = document.getElementById("login-username").value;
+            const passInput = document.getElementById("login-password").value;
+            const errorEl = document.getElementById("login-error");
 
-        // ÉTAT ET RENDU
+            if (userInput === AUTH_USER && passInput === AUTH_PASS) {
+                localStorage.setItem("ndl_auth", "true");
+                document.getElementById("login-modal").classList.add("hidden");
+                errorEl.classList.add("hidden");
+            } else {
+                errorEl.classList.remove("hidden");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("ndl_auth");
+            location.reload();
+        }
+
+        // DONNÉES DES CUVES
         let isLocked = true;
-        let tanks = [{ id: 60, pct: 50 }, { id: 61, pct: 25 }]; // Exemple
+        let tanks = [
+            { id: 60, cap: 25.4, pct: 100, alim: "ouverte", vid: "fermee", usage: "Défense incendie", battery: "left" },
+            { id: 61, cap: 25.0, pct: 0, alim: "fermee", vid: "ouverte", usage: "Jardins partagés", battery: "right" },
+            { id: 62, cap: 25.0, pct: 75, alim: "ouverte", vid: "fermee", usage: "Jardins partagés", battery: "left" },
+            { id: 63, cap: 25.0, pct: 50, alim: "ouverte", vid: "fermee", usage: "Défense incendie", battery: "right" }
+        ];
 
         function toggleLock() {
             isLocked = !isLocked;
-            document.getElementById('lock-btn').innerText = isLocked ? "Verrouillé" : "Déverrouillé";
+            const btn = document.getElementById('lock-btn');
+            if (isLocked) {
+                btn.innerText = "Verrouillé";
+                btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-bold border border-rose-500/50 transition-colors";
+            } else {
+                btn.innerText = "Déverrouillé";
+                btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold border border-emerald-500/50 transition-colors";
+            }
             renderSchema();
         }
 
         function setTankLevel(id, pct) {
-            if (isLocked) return alert("Application verrouillée");
-            tanks.find(t => t.id === id).pct = pct;
-            renderSchema();
+            if (isLocked) return alert("Veuillez déverrouiller l'interface avant de modifier un niveau.");
+            const tank = tanks.find(t => t.id === id);
+            if (tank) {
+                tank.pct = pct;
+                // Synchronisation avec Firebase si configuré
+                db.ref('tanks/' + id).set(tank).catch(() => {});
+                renderSchema();
+            }
+        }
+
+        function createTankCardHTML(t) {
+            const levels = [0, 25, 50, 75, 100];
+            const controlsHTML = !isLocked ? `
+                <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1 z-20">
+                    ${levels.map(p => `
+                        <button onclick="setTankLevel(${t.id}, ${p})" class="flex-1 py-1.5 bg-slate-800 hover:bg-blue-600 border border-slate-700/80 rounded-lg text-[10px] font-bold transition-all ${t.pct === p ? 'bg-blue-600 text-white border-blue-500' : 'text-slate-300'}">
+                            ${p}%
+                        </button>
+                    `).join('')}
+                </div>` : '';
+
+            return `
+                <div class="relative bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between overflow-hidden shadow-md">
+                    <div class="flex justify-between items-start mb-2 z-10">
+                        <div>
+                            <span class="font-bold text-white text-sm">Cuve ${t.id}</span>
+                            <p class="text-[11px] text-slate-400">${t.usage}</p>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-2 py-0.5 rounded-md">${t.pct}%</span>
+                    </div>
+                    
+                    <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800 mb-1">
+                        <div class="bg-blue-500 h-full tank-water" style="width: ${t.pct}%"></div>
+                    </div>
+
+                    ${controlsHTML}
+                </div>`;
         }
 
         function renderSchema() {
-            const list = document.getElementById('battery-left-list');
-            list.innerHTML = tanks.map(t => `
-                <div class="relative bg-slate-900 border border-slate-700 rounded-xl h-20 flex items-center justify-between p-4 overflow-hidden">
-                    <span>Cuve ${t.id} - ${t.pct}%</span>
-                    ${!isLocked ? `
-                        <div class="flex gap-1 z-10">
-                            ${[0,25,50,75,100].map(p => `<button onclick="setTankLevel(${t.id},${p})" class="px-2 py-1 bg-slate-700 hover:bg-blue-600 rounded text-xs">${p}%</button>`).join('')}
-                        </div>` : ''}
-                </div>
-            `).join('');
+            // Calculs pour les cartes de métriques
+            let totalCap = 0, totalVol = 0;
+            let jardinsCap = 0, jardinsVol = 0;
+            let incendieCap = 0, incendieVol = 0;
+
+            tanks.forEach(t => {
+                const vol = t.cap * (t.pct / 100);
+                totalCap += t.cap;
+                totalVol += vol;
+
+                if (t.usage.toLowerCase().includes("jardin")) {
+                    jardinsCap += t.cap;
+                    jardinsVol += vol;
+                }
+                if (t.usage.toLowerCase().includes("incendie")) {
+                    incendieCap += t.cap;
+                    incendieVol += vol;
+                }
+            });
+
+            document.getElementById("tot-vol-disp").innerText = totalVol.toFixed(1);
+            document.getElementById("tot-bar").style.width = totalCap > 0 ? `${(totalVol / totalCap * 100).toFixed(0)}%` : "0%";
+
+            document.getElementById("jardins-vol-disp").innerText = jardinsVol.toFixed(1);
+            document.getElementById("jardins-bar").style.width = jardinsCap > 0 ? `${(jardinsVol / jardinsCap * 100).toFixed(0)}%` : "0%";
+
+            document.getElementById("incendie-vol-disp").innerText = incendieVol.toFixed(1);
+            document.getElementById("incendie-bar").style.width = incendieCap > 0 ? `${(incendieVol / incendieCap * 100).toFixed(0)}%` : "0%";
+
+            // Rendu des cuves par batterie
+            const leftList = document.getElementById("battery-left-list");
+            const rightList = document.getElementById("battery-right-list");
+
+            const leftTanks = tanks.filter(t => t.battery === "left");
+            const rightTanks = tanks.filter(t => t.battery === "right");
+
+            leftList.innerHTML = leftTanks.map(t => createTankCardHTML(t)).join('');
+            rightList.innerHTML = rightTanks.map(t => createTankCardHTML(t)).join('');
+
+            refreshIcons();
+        }
+
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem("ndl_auth") !== "true") document.getElementById("login-modal").classList.remove("hidden");
+            checkAuth();
             renderSchema();
         });
     </script>
 </body>
 </html>
+
